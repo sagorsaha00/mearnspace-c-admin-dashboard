@@ -1,8 +1,8 @@
 import { createBrowserRouter } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/login";
-import Dashboard from "./pages/Dashboard";
-import Nonroute from "./pages/nonroute";
+import Dashboard from "./layouts/dashboard";
+import Nonroute from "./layouts/nonroute";
  
 
 export const router = createBrowserRouter([
