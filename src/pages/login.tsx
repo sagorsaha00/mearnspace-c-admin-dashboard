@@ -1,7 +1,47 @@
-import { Button, Card, Checkbox, Flex, Form, Input, Layout, Space } from "antd";
+import {
+  Alert,
+  Button,
+  Card,
+  Checkbox,
+  Flex,
+  Form,
+  Input,
+  Layout,
+  Space,
+} from "antd";
 import { LockFilled, LockOutlined, UserOutlined } from "@ant-design/icons";
 import Logo from "../../src/components/icons/logo";
+import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { login, self } from "../http/api";
+import { Credentials } from "../types";
+const loginUser = async (credentials: Credentials) => {
+  const { data } = await login(credentials);
+  return data;
+};
+
+const getself = async () => {
+  const data = await self();
+  return data;
+};
+
 export default function LoginPage() {
+  const { data: selfData, refetch } = useQuery({
+    queryKey: ["self"],
+    queryFn: getself,
+    enabled: false,
+  });
+  const { mutate, isError, isPending, error } = useMutation({
+    mutationKey: ["login"],
+    mutationFn: loginUser,
+
+    onSuccess: async () => {
+      console.log("login success");
+      refetch();
+      console.log("user data", selfData);
+    },
+  });
+
   return (
     <Layout
       style={{
@@ -40,7 +80,15 @@ export default function LoginPage() {
             </Space>
           }
         >
-          <Form initialValues={{ remberme: true }}>
+          <Form
+            initialValues={{ remberme: true }}
+            onFinish={(values) => {
+              mutate({ email: values.username, password: values.password });
+
+              console.log("form values", values);
+            }}
+          >
+            {isError ? <Alert type="error" message={error?.message} /> : null}
             <Form.Item
               name="username"
               rules={[
@@ -78,11 +126,7 @@ export default function LoginPage() {
               >
                 <Checkbox>Rember me</Checkbox>
               </Form.Item>
-              <a
-                href=""
-               
-                style={{ paddingTop: 4, marginRight: 20 }}
-              >
+              <a href="" style={{ paddingTop: 4, marginRight: 20 }}>
                 Forget Password
               </a>
             </Flex>
@@ -92,6 +136,7 @@ export default function LoginPage() {
                 type="primary"
                 htmlType="submit"
                 style={{ width: "100%" }}
+                loading={isPending}
               >
                 Log In
               </Button>
