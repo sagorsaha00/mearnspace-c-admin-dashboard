@@ -13,8 +13,9 @@ import { LockFilled, LockOutlined, UserOutlined } from "@ant-design/icons";
 import Logo from "../../src/components/icons/logo";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store";
-import { login, self } from "../http/api";
+import { login, self, logout } from "../http/api";
 import { Credentials } from "../types";
+import { userPermisson } from "../hooks/userPermisson";
 
 const loginUser = async (credentials: Credentials) => {
   const { data } = await login(credentials);
@@ -27,19 +28,34 @@ const getself = async () => {
 };
 
 export default function LoginPage() {
-  const { setUser } = useAuthStore();
-  const { data: selfData, refetch } = useQuery({
+  const { setUser, logout: logoutfromStore } = useAuthStore();
+  const { isAllowed } = userPermisson();
+  const { refetch } = useQuery({
     queryKey: ["self"],
     queryFn: getself,
     enabled: false,
   });
+
+  const { mutate: Logoutmutation } = useMutation({
+    mutationKey: ["logout"],
+    mutationFn: logout,
+    onSuccess: async () => {
+      logoutfromStore();
+      return;
+    },
+  });
+
   const { mutate, isError, isPending, error } = useMutation({
     mutationKey: ["login"],
     mutationFn: loginUser,
     onSuccess: async () => {
       const selfpromiseData = await refetch();
+      if (!isAllowed(selfpromiseData.data?.data)) {
+        Logoutmutation();
+        return;
+      }
+
       setUser(selfpromiseData.data?.data);
-       
     },
   });
 
@@ -85,8 +101,6 @@ export default function LoginPage() {
             initialValues={{ remberme: true }}
             onFinish={(values) => {
               mutate({ email: values.username, password: values.password });
-
-              console.log("form values", values);
             }}
           >
             {isError ? <Alert type="error" message={error?.message} /> : null}
