@@ -30,7 +30,7 @@ export default function Root() {
 
   return (
     <div>
-      Root file
+   
       <Outlet />
     </div>
   );

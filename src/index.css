@@ -1,1 +1,8 @@
- 
+.dasboarad-logo{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    margin-right: 20px;
+    padding: 15px;
+}

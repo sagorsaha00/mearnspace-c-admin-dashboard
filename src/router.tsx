@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import HomePage from "./pages/HomePage";
+import User from './pages/user'
 import LoginPage from "./pages/login";
 import Dashboard from "./layouts/dashboard";
 import Nonroute from "./layouts/nonroute";
@@ -17,6 +18,10 @@ export const router = createBrowserRouter([
           {
             path: "",
             element: <HomePage />,
+          },
+          {
+            path: "/users",
+            element: <User />,
           },
         ],
       },
