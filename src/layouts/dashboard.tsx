@@ -44,18 +44,19 @@ const items = [
 
 export default function Dashboard() {
   const { logout: logoutfromStore } = useAuthStore();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { mutate: Logoutmutation } = useMutation({
     mutationKey: ["logout"],
     mutationFn: logout,
     onSuccess: async () => {
       logoutfromStore();
-      navigate("/auth/login")
-      return  ;
+      navigate("/auth/login");
+      return;
     },
   });
   const { Header, Sider, Content } = Layout;
   const { user } = useAuthStore();
+
   if (user === null) {
     return <Navigate to={"/auth/login"} replace={true} />;
   }
@@ -99,7 +100,12 @@ export default function Dashboard() {
             }}
           >
             <Flex style={{ justifyContent: "space-between" }}>
-              <Badge text="Global" status="success"></Badge>
+              <Badge
+                text={
+                  user.role === "admin" ? "you are an admin" : user?.tanent.name
+                }
+                status="success"
+              ></Badge>
               <Space size={18}>
                 <Badge dot={true}>
                   <BellFilled />
