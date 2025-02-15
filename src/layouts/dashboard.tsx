@@ -83,7 +83,7 @@ export default function Dashboard() {
           </div>
           <div className="demo-logo-vertical" />
           <Menu
-            style={{ marginLeft: "17px" }}
+            style={{ marginLeft: "17px",width:"185px" }}
             theme="light"
             defaultSelectedKeys={["/"]}
             mode="inline"
@@ -130,7 +130,7 @@ export default function Dashboard() {
               </Space>
             </Flex>
           </Header>
-          <Content style={{ margin: "0 16px" }}>
+          <Content style={{   }}>
             <div
               style={{
                 padding: 24,
@@ -147,10 +147,7 @@ export default function Dashboard() {
           </Footer>
         </Layout>
       </Layout>
-      <div>
-        this is home page
-        <Outlet></Outlet>
-      </div>
+    
     </>
   );
 }
