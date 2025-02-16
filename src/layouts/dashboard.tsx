@@ -14,33 +14,45 @@ import Icon, { BellFilled, UsergroupAddOutlined } from "@ant-design/icons";
 import { logout } from "../http/api";
 import { useMutation } from "@tanstack/react-query";
 
-const items = [
-  {
-    key: "/",
-    icon: <Icon component={Home} />,
-    label: <NavLink to={"/"}>Home</NavLink>,
-  },
-  {
-    key: "/users",
-    icon: <UsergroupAddOutlined />,
-    label: <NavLink to={"/users"}>Users</NavLink>,
-  },
-  {
-    key: "/rasturants",
-    icon: <Icon component={Rasturants}></Icon>,
-    label: <NavLink to={"/resturants"}>Rasturants</NavLink>,
-  },
-  {
-    key: "/products",
-    icon: <Icon component={Products}></Icon>,
-    label: <NavLink to={"/products"}>Products</NavLink>,
-  },
-  {
-    key: "/promos",
-    icon: <Icon component={Promos}></Icon>,
-    label: <NavLink to={"/promos"}>Promos</NavLink>,
-  },
-];
+const GetMenuItems = (role: string) => {
+  const baseItem = [
+    {
+      key: "/",
+      icon: <Icon component={Home} />,
+      label: <NavLink to={"/"}>Home</NavLink>,
+    },
+    {
+      key: "/rasturants",
+      icon: <Icon component={Rasturants}></Icon>,
+      label: <NavLink to={"/resturants"}>Rasturants</NavLink>,
+    },
+    {
+      key: "/products",
+      icon: <Icon component={Products}></Icon>,
+      label: <NavLink to={"/products"}>Products</NavLink>,
+    },
+    {
+      key: "/promos",
+      icon: <Icon component={Promos}></Icon>,
+      label: <NavLink to={"/promos"}>Promos</NavLink>,
+    },
+  ];
+
+  if (role === "admin") {
+    const menus = [
+      ...baseItem.slice(0, 1), // Keep the first item(s)
+      {
+        key: "/users",
+        icon: <UsergroupAddOutlined />,
+        label: <NavLink to={"/users"}>Users</NavLink>,
+      },
+      ...baseItem.slice(1), // Add the rest of the items after
+    ];
+    return menus;
+  }
+
+  return baseItem;
+};
 
 export default function Dashboard() {
   const { logout: logoutfromStore } = useAuthStore();
@@ -60,6 +72,8 @@ export default function Dashboard() {
   if (user === null) {
     return <Navigate to={"/auth/login"} replace={true} />;
   }
+
+  const items = GetMenuItems(user.role);
 
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -83,7 +97,7 @@ export default function Dashboard() {
           </div>
           <div className="demo-logo-vertical" />
           <Menu
-            style={{ marginLeft: "17px",width:"185px" }}
+            style={{ marginLeft: "17px",  }}
             theme="light"
             defaultSelectedKeys={["/"]}
             mode="inline"
@@ -130,7 +144,7 @@ export default function Dashboard() {
               </Space>
             </Flex>
           </Header>
-          <Content style={{   }}>
+          <Content>
             <div
               style={{
                 padding: 24,
@@ -147,7 +161,6 @@ export default function Dashboard() {
           </Footer>
         </Layout>
       </Layout>
-    
     </>
   );
 }

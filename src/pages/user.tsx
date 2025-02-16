@@ -4,7 +4,7 @@ import { Breadcrumb, Space, Table } from "antd";
 import React, { use } from "react";
 import { getUserdata } from "../http/api";
 import { Users } from "../types";
- 
+import UserFilter from "./userFilter";
 
 export default function User() {
   const columns = [
@@ -43,6 +43,7 @@ export default function User() {
       ></Breadcrumb>
      
       <div>
+        <UserFilter/> 
          <Table columns={columns} dataSource={users}></Table>
       </div></Space>
     </>
