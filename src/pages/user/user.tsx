@@ -1,10 +1,11 @@
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { Breadcrumb, Button, Drawer, Form, Row, Space, Table } from "antd";
 import React, { useEffect } from "react";
-import { getUserdata } from "../http/api";
-import { Users } from "../types";
+import { getUserdata } from "../../http/api";
+import { Users } from "../../types";
 import UserFilter from "./userFilter";
+import CreateUser from "./createUser";
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -15,13 +16,12 @@ export default function User() {
       setLoading(true);
       const timer = setTimeout(() => {
         setLoading(false);
-      }, 2000);
+      }, 1000);
 
       return () => clearTimeout(timer); // Cleanup on unmount
     }
   }, [open]);
 
- 
   const columns = [
     {
       title: "FirstName",
@@ -78,6 +78,7 @@ export default function User() {
           <Table columns={columns} dataSource={users} rowKey={"id"}></Table>
 
           <Drawer
+           
             closable
             destroyOnClose
             title={<p> Create User</p>}
@@ -85,7 +86,6 @@ export default function User() {
             open={open}
             loading={loading}
             onClose={() => setOpen(false)}
-            
             width={500}
             extra={
               <Space>
@@ -94,9 +94,9 @@ export default function User() {
               </Space>
             }
           >
-            <p>Some contents...</p>
-            <p>Some contents...</p>
-            <p>Some contents...</p>
+           <Form layout="vertical">
+           <CreateUser/> 
+           </Form>
           </Drawer>
         </div>
       </Space>

@@ -10,3 +10,8 @@ export type Users = {
   email:string,
   createdAt:string
 }
+export type Tanent = {
+  id:number,
+  name:string,
+  address:string
+}

@@ -1,11 +1,10 @@
-import React, { Children } from "react";
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Col, Input, Row,  } from "antd";
+import React from "react";
+import { Card, Col, Input, Row } from "antd";
 
 type resturantfiler = {
-    children?: React.ReactNode;
-}
-export default function ResturantFIlter({children} :resturantfiler) {
+  children?: React.ReactNode;
+};
+export default function ResturantFIlter({ children }: resturantfiler) {
   return (
     <>
       <Card>
@@ -17,9 +16,7 @@ export default function ResturantFIlter({children} :resturantfiler) {
               </Col>
             </Row>
           </Col>
-          <Col span={3}>
-          {children}
-          </Col>
+          <Col span={3}>{children}</Col>
         </Row>
       </Card>
     </>
