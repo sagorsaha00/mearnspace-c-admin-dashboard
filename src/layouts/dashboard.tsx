@@ -116,7 +116,7 @@ export default function Dashboard() {
             <Flex style={{ justifyContent: "space-between" }}>
               <Badge
                 text={
-                  user.role === "admin" ? "you are an admin" : user?.tanent.name
+                  user.role === "admin" ? "you are an admin" : user?.tanent?.name
                 }
                 status="success"
               ></Badge>

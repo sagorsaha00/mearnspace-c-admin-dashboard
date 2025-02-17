@@ -21,15 +21,7 @@ export default function User() {
     }
   }, [open]);
 
-  // const showLoading = () => {
-  //   setOpen(true);
-  //   setLoading(true);
-
-  //   // Simple loading mock. You should add cleanup logic in real world.
-  //   setTimeout(() => {
-  //     setLoading(false);
-  //   }, 2000);
-  // };
+ 
   const columns = [
     {
       title: "FirstName",
