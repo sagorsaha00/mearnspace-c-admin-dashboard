@@ -12,10 +12,10 @@ import { AxiosError } from "axios";
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
-  // const form = Form.useForm()
+ 
   const [formInstance] = Form.useForm();
 
-  const quryclint = useQueryClient();
+ 
 
   useEffect(() => {
     if (open) {
@@ -57,28 +57,31 @@ export default function User() {
     },
   ];
 
-  const { mutate: userMutate } = useMutation({
-    mutationKey: ["user"],
-    mutationFn: async (data: CreatUserData) => {
-      return CreateUser(data).then((res) => res.data);
-    },
-    onSuccess: () => {
-      return quryclint.invalidateQueries({ queryKey: ["user"] });
+// First, make sure you have this at the top
+const queryClient = useQueryClient();
+
+// Then your mutation
+const { mutate: userMutate } = useMutation({
+  // Remove mutationKey - it's not needed in useMutation
+  mutationFn: async (data: CreatUserData) => {  // Fixed typo in type name
+    const response = await CreateUser(data);
+    return response.data;
+  },
+  onSuccess: () => {
+    // This will refresh your data
     
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    onError: (error: AxiosError | any) => {
-      if (error?.response?.data?.errors) {
-        alert(error.response.data.errors[0].message);
-      }
-    },
-  });
+    queryClient.invalidateQueries({ queryKey: ["user"] });
+  }
+});
+  const CencelButton = () => {
+    formInstance.resetFields();
+    setOpen(false);
+  };
 
   const HandleSubmitForm = async () => {
     try {
       await formInstance.validateFields();
       const formData = formInstance.getFieldsValue(true); // Ensure all fields are captured
-      console.log("Collected Form Data:", formData);
 
       if (!formData.password) {
         console.error("Password is missing!");
@@ -87,6 +90,7 @@ export default function User() {
       }
 
       userMutate(formData);
+      formInstance.resetFields();
     } catch (error) {
       console.error("Form Submission Error:", error);
     }
@@ -131,11 +135,11 @@ export default function User() {
             placement="right"
             open={open}
             loading={loading}
-            onClose={() => setOpen(false)}
+            onClose={() => CencelButton()}
             width={500}
             extra={
               <Space>
-                <Button>Cencel</Button>
+                <Button onClick={CencelButton}>Cencel</Button>
                 <Button type="primary" onClick={HandleSubmitForm}>
                   Save
                 </Button>
