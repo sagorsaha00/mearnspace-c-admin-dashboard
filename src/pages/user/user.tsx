@@ -1,15 +1,21 @@
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { useQuery } from "@tanstack/react-query";
-import { Breadcrumb, Button, Drawer, Form, Row, Space, Table } from "antd";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
 import React, { useEffect } from "react";
-import { getUserdata } from "../../http/api";
-import { Users } from "../../types";
+import { CreateUser, getUserdata } from "../../http/api";
+import { Users, CreatUserData } from "../../types";
 import UserFilter from "./userFilter";
-import CreateUser from "./createUser";
+import CreateUserForm from "./createUser";
+
+import { AxiosError } from "axios";
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
+  // const form = Form.useForm()
+  const [formInstance] = Form.useForm();
+
+  const quryclint = useQueryClient();
 
   useEffect(() => {
     if (open) {
@@ -23,6 +29,11 @@ export default function User() {
   }, [open]);
 
   const columns = [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+    },
     {
       title: "FirstName",
       dataIndex: "lastname",
@@ -45,6 +56,42 @@ export default function User() {
       key: "role",
     },
   ];
+
+  const { mutate: userMutate } = useMutation({
+    mutationKey: ["user"],
+    mutationFn: async (data: CreatUserData) => {
+      return CreateUser(data).then((res) => res.data);
+    },
+    onSuccess: () => {
+      return quryclint.invalidateQueries({ queryKey: ["user"] });
+    
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: AxiosError | any) => {
+      if (error?.response?.data?.errors) {
+        alert(error.response.data.errors[0].message);
+      }
+    },
+  });
+
+  const HandleSubmitForm = async () => {
+    try {
+      await formInstance.validateFields();
+      const formData = formInstance.getFieldsValue(true); // Ensure all fields are captured
+      console.log("Collected Form Data:", formData);
+
+      if (!formData.password) {
+        console.error("Password is missing!");
+        alert("Password is required.");
+        return;
+      }
+
+      userMutate(formData);
+    } catch (error) {
+      console.error("Form Submission Error:", error);
+    }
+  };
+
   const { data: users } = useQuery({
     queryKey: ["users"],
     queryFn: () => {
@@ -78,7 +125,6 @@ export default function User() {
           <Table columns={columns} dataSource={users} rowKey={"id"}></Table>
 
           <Drawer
-           
             closable
             destroyOnClose
             title={<p> Create User</p>}
@@ -90,13 +136,15 @@ export default function User() {
             extra={
               <Space>
                 <Button>Cencel</Button>
-                <Button type="primary">Save</Button>
+                <Button type="primary" onClick={HandleSubmitForm}>
+                  Save
+                </Button>
               </Space>
             }
           >
-           <Form layout="vertical">
-           <CreateUser/> 
-           </Form>
+            <Form layout="vertical" form={formInstance}>
+              <CreateUserForm />
+            </Form>
           </Drawer>
         </div>
       </Space>

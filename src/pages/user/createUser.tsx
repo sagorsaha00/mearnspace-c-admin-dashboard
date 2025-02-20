@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space } from "antd";
-import React from "react";
+
 import { getAlltanentsdata } from "../../http/api";
 import { Tanent } from "../../types";
-import Password from "antd/es/input/Password";
 
 export default function CreateUser() {
   const { data: tanents = [] } = useQuery({
@@ -34,7 +33,7 @@ export default function CreateUser() {
               <Col span={12}>
                 <Form.Item
                   label="Last Name"
-                  name="lasatname"
+                  name="lastname"
                   rules={[
                     { required: true, message: "Please input your Lastname!" },
                   ]}
@@ -45,10 +44,10 @@ export default function CreateUser() {
               <Col span={12}>
                 <Form.Item
                   label="Email"
-                  name="Email"
+                  name="email"
                   rules={[
                     { required: true, message: "Please input your Email!" },
-                    {type:'email', message:"please input a valid a email"}
+                    { type: "email", message: "please input a valid a email" },
                   ]}
                 >
                   <Input placeholder="email" />
@@ -59,10 +58,14 @@ export default function CreateUser() {
           <Card title="Sequrity info" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
-                <Form.Item label="Passwrod" name="passwrod" rules={[
+                <Form.Item
+                  label="Password"
+                  name="password"
+                  rules={[
                     { required: true, message: "Please input your Password!" },
-                  ]}>
-                  <Input type="password" placeholder="password" />
+                  ]}
+                >
+                  <Input.Password placeholder="Enter your password" />
                 </Form.Item>
               </Col>
             </Row>
@@ -70,24 +73,32 @@ export default function CreateUser() {
           <Card title="Role info" dir="horizontal" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
-                <Form.Item label="Role" name="Role" rules={[
+                <Form.Item
+                  label="Role"
+                  name="role"
+                  rules={[
                     { required: true, message: "Please input your Role!" },
-                  ]}>
+                  ]}
+                >
                   <Select
                     style={{ width: "80%" }}
                     allowClear={true}
                     placeholder="Status"
                   >
-                    <Select.Option value="Ban">Customer </Select.Option>
-                    <Select.Option value="Active">Manager </Select.Option>
-                    <Select.Option value="Active">Admin </Select.Option>
+                    <Select.Option value="Customer">Customer </Select.Option>
+                    <Select.Option value="Manager">Manager </Select.Option>
+                    <Select.Option value="Admin">Admin </Select.Option>
                   </Select>
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="Resturant" name="resturant" rules={[
+                <Form.Item
+                  label="Resturant"
+                  name="tanentId"
+                  rules={[
                     { required: true, message: "Please input your Resturant!" },
-                  ]}>
+                  ]}
+                >
                   <Select
                     style={{ width: "80%" }}
                     allowClear={true}
