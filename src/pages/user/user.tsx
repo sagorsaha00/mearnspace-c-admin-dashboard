@@ -1,21 +1,23 @@
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { CreateUser, getUserdata } from "../../http/api";
 import { Users, CreatUserData } from "../../types";
 import UserFilter from "./userFilter";
 import CreateUserForm from "./createUser";
 
 import { AxiosError } from "axios";
+import { PER_PAGE } from "../../constant";
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
- 
+  const [quryParams, setQuryParams] = React.useState({
+    perPage: PER_PAGE,
+    currentPage: 1,
+  });
   const [formInstance] = Form.useForm();
-
- 
 
   useEffect(() => {
     if (open) {
@@ -57,22 +59,19 @@ export default function User() {
     },
   ];
 
-// First, make sure you have this at the top
-const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
 
-// Then your mutation
-const { mutate: userMutate } = useMutation({
-  // Remove mutationKey - it's not needed in useMutation
-  mutationFn: async (data: CreatUserData) => {  // Fixed typo in type name
-    const response = await CreateUser(data);
-    return response.data;
-  },
-  onSuccess: () => {
-    // This will refresh your data
-    
-    queryClient.invalidateQueries({ queryKey: ["user"] });
-  }
-});
+  const { mutate: userMutate } = useMutation({
+    mutationFn: async (data: CreatUserData) => {
+      const response = await CreateUser(data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // This will refresh your data
+
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+  });
   const CencelButton = () => {
     formInstance.resetFields();
     setOpen(false);
@@ -97,9 +96,11 @@ const { mutate: userMutate } = useMutation({
   };
 
   const { data: users } = useQuery({
-    queryKey: ["users"],
+    queryKey: ["users",quryParams],
     queryFn: () => {
-      return getUserdata().then((res) => res.data);
+      const quryString = new URLSearchParams(quryParams as unknown as  Record<string,string>).toString()
+      
+      return getUserdata(quryString).then((res) => res.data);
     },
   });
   return (
@@ -126,7 +127,24 @@ const { mutate: userMutate } = useMutation({
               Add user
             </Button>
           </UserFilter>
-          <Table columns={columns} dataSource={users} rowKey={"id"}></Table>
+          <Table
+            columns={columns}
+            dataSource={users?.data}
+            rowKey={"id"}
+            pagination={{
+              total: users?.total,
+              pageSize: quryParams.perPage,
+              current: quryParams.currentPage,
+              onChange: (page) => {
+                setQuryParams((prev) => {
+                  return {
+                    ...prev,
+                    currentPage: page,
+                  };
+                });
+              },
+            }}
+          ></Table>
 
           <Drawer
             closable
