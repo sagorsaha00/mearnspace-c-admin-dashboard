@@ -1,7 +1,28 @@
-import { PlusOutlined, RightOutlined } from "@ant-design/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
-import React, { useEffect, useState } from "react";
+import {
+  LoadingOutlined,
+  PlusOutlined,
+  RightOutlined,
+} from "@ant-design/icons";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import {
+  Breadcrumb,
+  Button,
+  Drawer,
+  Flex,
+  Form,
+  Space,
+ 
+  Spin,
+ 
+  Table,
+  Typography,
+} from "antd";
+import React, { useEffect } from "react";
 import { CreateUser, getUserdata } from "../../http/api";
 import { Users, CreatUserData } from "../../types";
 import UserFilter from "./userFilter";
@@ -95,22 +116,42 @@ export default function User() {
     }
   };
 
-  const { data: users } = useQuery({
-    queryKey: ["users",quryParams],
+  const {
+    data: users,
+    isFetching,
+    isError,
+  } = useQuery({
+    queryKey: ["users", quryParams],
     queryFn: () => {
-      const quryString = new URLSearchParams(quryParams as unknown as  Record<string,string>).toString()
-      
+      const quryString = new URLSearchParams(
+        quryParams as unknown as Record<string, string>
+      ).toString();
+
       return getUserdata(quryString).then((res) => res.data);
     },
+    placeholderData: keepPreviousData,
   });
   return (
     <>
       <Space direction="vertical" style={{ width: "100%" }}>
         {" "}
-        <Breadcrumb
-          separator={<RightOutlined style={{ fontSize: "16px" }} />}
-          items={[{ title: "Dashboard" }, { title: "User" }]}
-        ></Breadcrumb>
+        <Flex style={{ justifyContent: "space-between" }}>
+          <Breadcrumb
+            separator={<RightOutlined style={{ fontSize: "16px" }} />}
+            items={[{ title: "Dashboard" }, { title: "User" }]}
+          ></Breadcrumb>
+          {isFetching && (
+            <div>
+         <Spin indicator={<LoadingOutlined  />} size="large" />
+            </div>
+          )}
+
+          {isError && (
+            <Typography.Text type="danger">
+              Something went wrong
+            </Typography.Text>
+          )}
+        </Flex>
         <div>
           <UserFilter
             onFilterChnage={(filterName: string, filterValue: string) => {
