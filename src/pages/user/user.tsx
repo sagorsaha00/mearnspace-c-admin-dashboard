@@ -22,15 +22,16 @@ import {
 } from "antd";
 import React, { useEffect } from "react";
 import { CreateUser, getUserdata } from "../../http/api";
-import { Users, CreatUserData, FormDataValue } from "../../types";
+import { Users, CreatUserData, FormDataValue, } from "../../types";
 import UserFilter from "./userFilter";
 import CreateUserForm from "./createUser";
 
 import { AxiosError } from "axios";
 import { PER_PAGE } from "../../constant";
 import { useForm } from "antd/es/form/Form";
-import Item from "antd/es/list/Item";
+ 
 import { debounce } from "lodash";
+ 
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -79,6 +80,16 @@ export default function User() {
       title: "Role",
       dataIndex: "role",
       key: "role",
+    },
+    {
+      title: "Rasturant",
+      dataIndex: "tanent",
+      key: "tanent",
+      render: (_text: string, record: User) => (
+        <div>
+          {record.tanent?.name} {record.tanent?.address}
+        </div>
+      ),
     },
   ];
 

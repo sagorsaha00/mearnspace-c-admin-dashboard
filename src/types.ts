@@ -1,3 +1,4 @@
+ 
 export type Credentials = {
   email: string;
   password: string;
@@ -9,6 +10,7 @@ export type Users = {
   lastname: string;
   email: string;
   createdAt: string;
+  tanent:Tanent
 };
 
 export type CreatUserData = {
