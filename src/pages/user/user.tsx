@@ -30,6 +30,7 @@ import { AxiosError } from "axios";
 import { PER_PAGE } from "../../constant";
 import { useForm } from "antd/es/form/Form";
 import Item from "antd/es/list/Item";
+import { debounce } from "lodash";
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -115,6 +116,12 @@ export default function User() {
       console.error("Form Submission Error:", error);
     }
   };
+
+  const debounceQparams = React.useMemo(() => {
+    return debounce((value: string | undefined) => {
+      setQuryParams((prev) => ({ ...prev, q: value }));
+    },1000);
+  },[]);
   const onFilterChange = (filterValue: FormDataValue[]) => {
     const filterChnageValue = filterValue
       .map((item) => {
@@ -127,13 +134,19 @@ export default function User() {
           ...acc,
           ...item,
         };
-      })
+      });
+
+    if ("q" in filterChnageValue) {
+      debounceQparams(filterChnageValue.q);
+    } else {
       setQuryParams((prev) => {
         return {
           ...prev,
           ...filterChnageValue,
         };
-      })
+      });
+    }
+
     console.log(filterChnageValue);
   };
 
@@ -143,9 +156,11 @@ export default function User() {
     isError,
   } = useQuery({
     queryKey: ["users", quryParams],
-     
+
     queryFn: () => {
-      const filterParams = Object.entries(quryParams).filter((item) => !!item[1])
+      const filterParams = Object.entries(quryParams).filter(
+        (item) => !!item[1]
+      );
       const quryString = new URLSearchParams(
         filterParams as unknown as Record<string, string>
       ).toString();
