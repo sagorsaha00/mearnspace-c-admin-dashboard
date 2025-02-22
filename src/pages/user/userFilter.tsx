@@ -1,12 +1,11 @@
-import { Card, Col, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, Row, Select } from "antd";
 
 type userFileterfunction = {
   children?: React.ReactNode;
-  onFilterChnage: (filterName: string, filterValue: string) => void;
+  
 };
 
 export default function UserFilter({
-  onFilterChnage,
   children,
 }: userFileterfunction) {
   return (
@@ -15,30 +14,31 @@ export default function UserFilter({
         <Col span={15} style={{ margin: "10px" }}>
           <Row>
             <Col span={8} style={{ marginRight: "20px" }}>
+              <Form.Item name='q'>
+
               <Input.Search
                 placeholder="username"
                 allowClear={true}
-                onChange={(e) =>
-                  onFilterChnage("serchFilterValue", e.target.value)
-                }
+                 
               />
+              </Form.Item>
             </Col>
             <Col span={7}>
               {" "}
+              <Form.Item name='role'>
               <Select
                 style={{ width: "80%", marginLeft: "10px" }}
                 placeholder="Role"
                 allowClear={true}
-                onChange={(selectItem) =>
-                  onFilterChnage("roleFilterValue", selectItem)
-                }
+                
               >
                 <Select.Option value="admin">Admin </Select.Option>
                 <Select.Option value="manager">manager </Select.Option>
                 <Select.Option value="customer">Admin </Select.Option>
-              </Select>{" "}
+              </Select>
+                </Form.Item>{" "}
             </Col>
-            <Col span={7} style={{ marginRight: "30px" }}>
+            {/* <Col span={7} style={{ marginRight: "30px" }}>
               <Select
                 style={{ width: "80%" }}
                 allowClear={true}
@@ -50,7 +50,7 @@ export default function UserFilter({
                 <Select.Option value="Ban">Ban </Select.Option>
                 <Select.Option value="Active">Active </Select.Option>
               </Select>
-            </Col>
+            </Col> */}
           </Row>
         </Col>
         <Col span={3}>{children}</Col>

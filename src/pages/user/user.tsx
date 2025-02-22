@@ -16,20 +16,20 @@ import {
   Flex,
   Form,
   Space,
- 
   Spin,
- 
   Table,
   Typography,
 } from "antd";
 import React, { useEffect } from "react";
 import { CreateUser, getUserdata } from "../../http/api";
-import { Users, CreatUserData } from "../../types";
+import { Users, CreatUserData, FormDataValue } from "../../types";
 import UserFilter from "./userFilter";
 import CreateUserForm from "./createUser";
 
 import { AxiosError } from "axios";
 import { PER_PAGE } from "../../constant";
+import { useForm } from "antd/es/form/Form";
+import Item from "antd/es/list/Item";
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -39,6 +39,7 @@ export default function User() {
     currentPage: 1,
   });
   const [formInstance] = Form.useForm();
+  const [form] = useForm();
 
   useEffect(() => {
     if (open) {
@@ -89,7 +90,6 @@ export default function User() {
     },
     onSuccess: () => {
       // This will refresh your data
-
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
@@ -115,6 +115,27 @@ export default function User() {
       console.error("Form Submission Error:", error);
     }
   };
+  const onFilterChange = (filterValue: FormDataValue[]) => {
+    const filterChnageValue = filterValue
+      .map((item) => {
+        return {
+          [item.name[0]]: item.value,
+        };
+      })
+      .reduce((acc, item) => {
+        return {
+          ...acc,
+          ...item,
+        };
+      })
+      setQuryParams((prev) => {
+        return {
+          ...prev,
+          ...filterChnageValue,
+        };
+      })
+    console.log(filterChnageValue);
+  };
 
   const {
     data: users,
@@ -122,9 +143,11 @@ export default function User() {
     isError,
   } = useQuery({
     queryKey: ["users", quryParams],
+     
     queryFn: () => {
+      const filterParams = Object.entries(quryParams).filter((item) => !!item[1])
       const quryString = new URLSearchParams(
-        quryParams as unknown as Record<string, string>
+        filterParams as unknown as Record<string, string>
       ).toString();
 
       return getUserdata(quryString).then((res) => res.data);
@@ -142,7 +165,7 @@ export default function User() {
           ></Breadcrumb>
           {isFetching && (
             <div>
-         <Spin indicator={<LoadingOutlined  />} size="large" />
+              <Spin indicator={<LoadingOutlined />} size="large" />
             </div>
           )}
 
@@ -153,21 +176,19 @@ export default function User() {
           )}
         </Flex>
         <div>
-          <UserFilter
-            onFilterChnage={(filterName: string, filterValue: string) => {
-              console.log(filterName, filterValue);
-            }}
-          >
-            {" "}
-            <Button
-              icon={<PlusOutlined />}
-              onClick={() => setOpen(true)}
-              type="primary"
-              style={{ justifyContent: "flex-end" }}
-            >
-              Add user
-            </Button>
-          </UserFilter>
+          <Form form={form} onFieldsChange={onFilterChange}>
+            <UserFilter>
+              {" "}
+              <Button
+                icon={<PlusOutlined />}
+                onClick={() => setOpen(true)}
+                type="primary"
+                style={{ justifyContent: "flex-end" }}
+              >
+                Add user
+              </Button>
+            </UserFilter>
+          </Form>
           <Table
             columns={columns}
             dataSource={users?.data}

@@ -25,3 +25,7 @@ export type Tanent = {
   name: string;
   address: string;
 };
+export type FormDataValue = {
+  name:string[],
+  value?:string
+}
