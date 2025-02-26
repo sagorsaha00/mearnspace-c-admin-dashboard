@@ -4,12 +4,12 @@ import { Card, Col, Form, Input, Row, Select, Space } from "antd";
 import { getAlltanentsdata } from "../../http/api";
 import { Tanent } from "../../types";
 
-export default function CreateUser() {
+export default function CreateUser({Editmood=false}: {Editmood?:boolean}) {
   const { data: tanents = [] } = useQuery({
     queryKey: ["alltanents"],
     queryFn: async () => {
-      const res = await getAlltanentsdata();
-      console.log("API Response:", res.data?.data);
+      const res = await getAlltanentsdata("");
+       
       return Array.isArray(res.data?.data) ? res.data?.data : [];
     },
   });
@@ -55,7 +55,8 @@ export default function CreateUser() {
               </Col>
             </Row>
           </Card>
-          <Card title="Sequrity info" bordered={false}>
+         {!Editmood && (
+            <Card title="Sequrity info" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
                 <Form.Item
@@ -70,6 +71,7 @@ export default function CreateUser() {
               </Col>
             </Row>
           </Card>
+         )}
           <Card title="Role info" dir="horizontal" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>

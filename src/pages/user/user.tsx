@@ -21,17 +21,15 @@ import {
   Typography,
 } from "antd";
 import React, { useEffect } from "react";
-import { CreateUser, getUserdata } from "../../http/api";
-import { Users, CreatUserData, FormDataValue, } from "../../types";
+import { CreateUser, getUserdata, updateUser } from "../../http/api";
+import { Users, CreatUserData, FormDataValue } from "../../types";
 import UserFilter from "./userFilter";
 import CreateUserForm from "./createUser";
 
-import { AxiosError } from "axios";
 import { PER_PAGE } from "../../constant";
 import { useForm } from "antd/es/form/Form";
- 
+
 import { debounce } from "lodash";
- 
 
 export default function User() {
   const [open, setOpen] = React.useState<boolean>(false);
@@ -42,6 +40,9 @@ export default function User() {
   });
   const [formInstance] = Form.useForm();
   const [form] = useForm();
+  const [currentUserData, setcurrentUserData] = React.useState<Users | null>(
+    null
+  );
 
   useEffect(() => {
     if (open) {
@@ -85,7 +86,7 @@ export default function User() {
       title: "Rasturant",
       dataIndex: "tanent",
       key: "tanent",
-      render: (_text: string, record: User) => (
+      render: (_text: string, record: Users) => (
         <div>
           {record.tanent?.name} {record.tanent?.address}
         </div>
@@ -105,34 +106,54 @@ export default function User() {
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
+  const { mutate: updateUserMutate } = useMutation({
+    mutationKey: ["update-data"],
+    mutationFn: async (data: CreatUserData) => {
+      const response = await updateUser(data, currentUserData!.id);
+      return response.data;
+    },
+    onSuccess: () => {
+      // This will refresh your data
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+    },
+  });
+  React.useEffect(() => {
+    if (currentUserData) {
+      setOpen(true);
+      formInstance.setFieldsValue({
+        ...currentUserData,
+        tanentId: currentUserData.tanent?.id,
+      });
+    }
+  }, [currentUserData, formInstance]);
   const CencelButton = () => {
     formInstance.resetFields();
     setOpen(false);
   };
 
   const HandleSubmitForm = async () => {
-    try {
-      await formInstance.validateFields();
+    await formInstance.validateFields();
+    const editmood = !!currentUserData;
+
+    if (editmood) {
+      console.log("update user data send");
+      await updateUserMutate(formInstance.getFieldsValue(true));
+    } else {
       const formData = formInstance.getFieldsValue(true); // Ensure all fields are captured
 
-      if (!formData.password) {
-        console.error("Password is missing!");
-        alert("Password is required.");
-        return;
-      }
-
       userMutate(formData);
-      formInstance.resetFields();
-    } catch (error) {
-      console.error("Form Submission Error:", error);
     }
+
+    setcurrentUserData(null);
+
+    formInstance.resetFields();
   };
 
   const debounceQparams = React.useMemo(() => {
     return debounce((value: string | undefined) => {
       setQuryParams((prev) => ({ ...prev, q: value }));
-    },1000);
-  },[]);
+    }, 1000);
+  }, []);
   const onFilterChange = (filterValue: FormDataValue[]) => {
     const filterChnageValue = filterValue
       .map((item) => {
@@ -157,8 +178,6 @@ export default function User() {
         };
       });
     }
-
-    console.log(filterChnageValue);
   };
 
   const {
@@ -216,7 +235,26 @@ export default function User() {
             </UserFilter>
           </Form>
           <Table
-            columns={columns}
+            columns={[
+              ...columns,
+              {
+                title: "Actions",
+
+                render: (_: string, record: Users) => (
+                  <div>
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        console.log(record);
+                        setcurrentUserData(record);
+                      }}
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                ),
+              },
+            ]}
             dataSource={users?.data}
             rowKey={"id"}
             pagination={{
@@ -231,17 +269,27 @@ export default function User() {
                   };
                 });
               },
+              showTotal: (total: number, range: [number, number]) => {
+                return (
+                  <span>
+                    {range[0]}-{range[1]} of {total} items
+                  </span>
+                );
+              },
             }}
           ></Table>
 
           <Drawer
             closable
             destroyOnClose
-            title={<p> Create User</p>}
+            title={currentUserData ? "Edit User" : "Add User"}
             placement="right"
             open={open}
             loading={loading}
-            onClose={() => CencelButton()}
+            onClose={() => {
+              CencelButton();
+              setcurrentUserData(null);
+            }}
             width={500}
             extra={
               <Space>
@@ -253,7 +301,7 @@ export default function User() {
             }
           >
             <Form layout="vertical" form={formInstance}>
-              <CreateUserForm />
+              <CreateUserForm Editmood={!!currentUserData} />
             </Form>
           </Drawer>
         </div>

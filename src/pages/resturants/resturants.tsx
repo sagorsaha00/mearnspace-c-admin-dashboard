@@ -1,14 +1,49 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAlltanentsdata } from "../../http/api";
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import {
+  Breadcrumb,
+  Form as AntdForm,
+  Button,
+  Drawer,
+  Space,
+  Table,
+} from "antd";
 import ResturantFIlter from "./resturantFIlter";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import React, { useEffect } from "react";
 
+import { ResturantFormDataValue } from "../../types";
+
+import { useForm } from "antd/es/form/Form";
+
 function Resturants() {
   const [open, setOpen] = React.useState<boolean>(false);
   const [loading, setLoading] = React.useState<boolean>(true);
+  const [quryParams, setQuryParams] = React.useState({
+    perPage: 7,
+    currentPage: 1,
+  });
+  const [form] = useForm();
+
+  const onFilterChange = (changedValues: ResturantFormDataValue[]) => {
+    const filterChangeRestaurantValue = changedValues.reduce((acc, item) => {
+      return {
+        ...acc,
+        [item.name[0]]: item.value,
+      };
+    }, {});
+
+    setQuryParams((prev) => {
+      const newState = {
+        ...prev,
+        ...filterChangeRestaurantValue,
+      };
+    
+      return newState;
+    });
+  };
+
 
   useEffect(() => {
     if (open) {
@@ -27,16 +62,19 @@ function Resturants() {
   ];
 
   const {
-    data: tanents = [],
+    data: tanents,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["alltanents"],
+    queryKey: ["alltanents", JSON.stringify(quryParams)],
     queryFn: async () => {
-      const res = await getAlltanentsdata();
-      console.log("API Response:", res.data?.data);
-      return Array.isArray(res.data?.data) ? res.data?.data : [];
+      const resturantstring = new URLSearchParams(
+        quryParams as unknown as Record<string, string>
+      ).toString();
+      const res = await getAlltanentsdata(resturantstring);
+      return res.data?.data;
     },
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) return <p>Loading...</p>;
@@ -49,18 +87,46 @@ function Resturants() {
         separator={<RightOutlined style={{ fontSize: "16px" }} />}
         items={[{ title: <Link to="/">Dashboard</Link> }, { title: "Tenants" }]}
       ></Breadcrumb>
+
       <Space direction="vertical" style={{ width: "100%", margin: "5px" }}>
-        <ResturantFIlter>
-          {" "}
-          <Button
-            type="primary"
-            onClick={() => setOpen(true)}
-            icon={<PlusOutlined />}
-          >
-            Add Resturant
-          </Button>
-        </ResturantFIlter>
-        <Table columns={columns} dataSource={tanents} />
+        <div>
+          <AntdForm form={form} onFieldsChange={onFilterChange}>
+            <ResturantFIlter>
+              <Button
+                icon={<PlusOutlined />}
+                onClick={() => setOpen(true)}
+                type="primary"
+                style={{ justifyContent: "flex-end" }}
+              >
+                Add user
+              </Button>
+            </ResturantFIlter>
+          </AntdForm>
+        </div>
+        <Table
+          columns={columns}
+          dataSource={tanents || []}
+          rowKey={"id"}
+          pagination={{
+            total: tanents?.total || 0, // Ensure `total` exists
+            pageSize: quryParams.perPage,
+            current: quryParams.currentPage,
+            onChange: (page, pageSize) => {
+              setQuryParams((prev) => ({
+                ...prev,
+                currentPage: page,
+                perPage: pageSize,
+              }));
+            },
+            showTotal: (total: number, range: [number, number]) => {
+              return (
+                <span>
+                  {range[0]}-{range[1]} of {total} items
+                </span>
+              );
+            },
+          }}
+        />
         <Drawer
           closable
           destroyOnClose

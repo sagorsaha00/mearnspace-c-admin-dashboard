@@ -14,6 +14,7 @@ export type Users = {
 };
 
 export type CreatUserData = {
+  id:string;
   firstname: string;
   lastname: string;
   email: string;
@@ -21,6 +22,12 @@ export type CreatUserData = {
   role: string;
   tanentId: number;
 };
+export type CreateResutantData = {
+  perPage: number;
+  currentPage: number;
+  name: string;
+  address: string;
+}
 
 export type Tanent = {
   id: number;
@@ -28,6 +35,11 @@ export type Tanent = {
   address: string;
 };
 export type FormDataValue = {
+  name:string[],
+  value?:string
+}
+
+export type ResturantFormDataValue = {
   name:string[],
   value?:string
 }
