@@ -32,7 +32,7 @@ api.interceptors.response.use(
         await refreshToken();
         return api.request({ ...orginalerror, headers });
       } catch (error) {
-        console.log("refresh Token error", error);
+        
         useAuthStore.getState().logout();
         return Promise.reject(error);
       }

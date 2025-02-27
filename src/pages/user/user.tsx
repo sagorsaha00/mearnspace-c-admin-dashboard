@@ -86,6 +86,7 @@ export default function User() {
       title: "Rasturant",
       dataIndex: "tanent",
       key: "tanent",
+
       render: (_text: string, record: Users) => (
         <div>
           {record.tanent?.name} {record.tanent?.address}
@@ -237,6 +238,11 @@ export default function User() {
           <Table
             columns={[
               ...columns,
+
+
+              {},
+
+
               {
                 title: "Actions",
 
@@ -245,7 +251,6 @@ export default function User() {
                     <Button
                       type="primary"
                       onClick={() => {
-                        console.log(record);
                         setcurrentUserData(record);
                       }}
                     >
