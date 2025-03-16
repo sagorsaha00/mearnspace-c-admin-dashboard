@@ -6,6 +6,7 @@ import Dashboard from "./layouts/dashboard";
 import Nonroute from "./layouts/nonroute";
 import Root from "./layouts/Root";
 import Resturants from "./pages/resturants/resturants";
+import Products from "./pages/products/products";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
           {
             path: "/resturants",
             element: <Resturants />,
+          },
+          {
+            path: "/products",
+            element: <Products />,
           },
         ],
       },

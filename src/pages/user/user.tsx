@@ -137,7 +137,6 @@ export default function User() {
     const editmood = !!currentUserData;
 
     if (editmood) {
-      console.log("update user data send");
       await updateUserMutate(formInstance.getFieldsValue(true));
     } else {
       const formData = formInstance.getFieldsValue(true); // Ensure all fields are captured
@@ -239,9 +238,7 @@ export default function User() {
             columns={[
               ...columns,
 
-
               {},
-
 
               {
                 title: "Actions",
