@@ -127,7 +127,9 @@ const Homepage = () => {
                     title={<Text strong>{order.name}</Text>}
                     description={order.location}
                   />
-                  <Text style={{marginRight:8}} strong>₹ {order.price}</Text>
+                  <Text style={{ marginRight: 8 }} strong>
+                    ₹ {order.price}
+                  </Text>
                   <Tag
                     style={{
                       background: order.statusColor,

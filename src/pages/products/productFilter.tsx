@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Card,
   Col,
@@ -10,10 +9,31 @@ import {
   Switch,
   Typography,
 } from "antd";
+import { useQuery } from "@tanstack/react-query";
+import { GetAllCatagories, getAlltanentsdata } from "../../http/api";
+import { Category, ResturantType } from "../../types";
+import { useAuthStore } from "../../store";
 type productFileterfunction = {
   children?: React.ReactNode;
 };
-export default function productFilter({ children }: productFileterfunction) {
+
+export default function ProductFilter({ children }: productFileterfunction) {
+  const { data: tenants } = useQuery({
+    queryKey: ["resturants"],
+    queryFn: async () => {
+       
+      return getAlltanentsdata("");
+    },
+  });
+
+  const { data: catagories } = useQuery({
+    queryKey: ["catagories "],
+    queryFn: async () => {
+      return GetAllCatagories();
+    },
+  });
+
+  const { user } = useAuthStore();
   return (
     <div>
       {" "}
@@ -28,27 +48,54 @@ export default function productFilter({ children }: productFileterfunction) {
               </Col>
               <Col span={5}>
                 {" "}
-                <Form.Item name="role">
+                <Form.Item name="CategoryId">
                   <Select
-                    id="selectboxid"
+                    id="CategoryId"
                     style={{ width: "80%", marginLeft: "10px" }}
-                    placeholder="Role"
+                    placeholder="Catagories"
                     allowClear={true}
                   >
-                    <Select.Option value="admin">Pizza </Select.Option>
-                    <Select.Option value="manager"> Drinks </Select.Option>
+                    {catagories?.data?.categories?.map(
+                      (item: ResturantType) => (
+                        <Select.Option key={item._id} value={item._id}>
+                          {item.name}
+                        </Select.Option>
+                      )
+                    )}
                   </Select>
                 </Form.Item>{" "}
               </Col>
               <Col span={5} style={{ marginRight: "20px" }}>
-                <Form.Item name="q">
-                  <Input.Search placeholder="Categories Id" allowClear={true} />
-                </Form.Item>
+                {user!.role === "admin" && (
+                  <Form.Item name="tenantId">
+                    <Select
+                      id="tenantid"
+                      style={{ width: "80%", marginLeft: "10px" }}
+                      placeholder="Restaurant"
+                      allowClear={true}
+                      onChange={(value) => {
+                        console.log("Selected Category ID:", value); // Logs the selected category id
+                      }}
+                    >
+                      {tenants?.data.data.map((item: Category) => (
+                        <Select.Option key={item.id} value={item.id}>
+                          {item.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                )}
               </Col>
               <Col span={5} style={{ marginRight: "20px" }}>
                 <Space>
-                <Switch defaultChecked onChange={() => {}} />
-                <Typography.Text>show only publish</Typography.Text>
+                  <Form.Item name="isPublish">
+                    <Switch
+                      defaultValue={false}
+                      defaultChecked
+                      onChange={() => {}}
+                    />
+                  </Form.Item>
+                  <Typography.Text>show only publish</Typography.Text>
                 </Space>
               </Col>
             </Row>

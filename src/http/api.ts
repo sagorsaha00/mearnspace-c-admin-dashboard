@@ -17,3 +17,13 @@ export const CreateUser = async (user: CreatUserData) => {
 export const updateUser = async (user: CreatUserData, id: number) => {
   return api.patch(`${auth_service}/users/${id}`, user);
 };
+
+
+
+//catalog-service-getapi
+
+export const GetAllCatagories = () => api.get(`${catalog_service}/categories`)
+export const GetAllProducts = (quryParams:string) => api.get(`${catalog_service}/products?${quryParams}`)
+export const GetAllProductstest = () => api.get(`${catalog_service}/products`)
+ 
+ 

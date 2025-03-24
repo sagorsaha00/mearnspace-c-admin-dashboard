@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import  { useEffect } from "react";
 import { self } from "../http/api";
 import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "../store";
