@@ -1,7 +1,8 @@
+import { data } from "react-router";
 import { CreatUserData, Credentials } from "../types";
 import { api } from "./client";
-export const auth_service = '/api/auth'
-export const catalog_service = '/api/catalog'
+export const auth_service = "/api/auth";
+export const catalog_service = "/api/catalog";
 
 export const login = (credentials: Credentials) =>
   api.post(`${auth_service}/auth/login`, credentials);
@@ -18,12 +19,15 @@ export const updateUser = async (user: CreatUserData, id: number) => {
   return api.patch(`${auth_service}/users/${id}`, user);
 };
 
-
-
 //catalog-service-getapi
 
-export const GetAllCatagories = () => api.get(`${catalog_service}/categories`)
-export const GetAllProducts = (quryParams:string) => api.get(`${catalog_service}/products?${quryParams}`)
-export const GetAllProductstest = () => api.get(`${catalog_service}/products`)
- 
- 
+export const GetAllCatagories = () => api.get(`${catalog_service}/categories`);
+export const GetAllProducts = (quryParams: string) =>
+  api.get(`${catalog_service}/products?${quryParams}`);
+export const GetAllProductstest = () => api.get(`${catalog_service}/products`);
+export const PostProductData = (product: FormData) =>
+  api.post(`${catalog_service}/products`, product, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });

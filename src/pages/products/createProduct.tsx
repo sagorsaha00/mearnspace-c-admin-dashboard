@@ -4,6 +4,7 @@ import {
   Col,
   Form,
   Input,
+  message,
   Row,
   Select,
   Space,
@@ -13,13 +14,16 @@ import {
 } from "antd";
 import { v4 as uuidv4 } from "uuid";
 import { GetAllCatagories, getAlltanentsdata } from "../../http/api";
-import { ResturantType } from "../../types";
+import { ResturantType, Tanent } from "../../types";
 import { PlusOutlined } from "@ant-design/icons";
 import Price from "./price";
 import Attrebuties from "./attrebuties";
+import { useEffect, useState } from "react";
 
 export default function CreateProduct() {
   const selectCategory = Form.useWatch("CategoryId");
+  const [imageUrl, setimageUrl] = useState<string>("");
+  const [messageApi, contextHolder] = message.useMessage();
 
   const { data: catagories } = useQuery({
     queryKey: ["catagories"],
@@ -27,19 +31,49 @@ export default function CreateProduct() {
       return GetAllCatagories();
     },
   });
+
+  const [formInstance] = Form.useForm();
   const { data: tenants } = useQuery({
     queryKey: ["resturants"],
     queryFn: async () => {
+      console.log("tenantdata", getAlltanentsdata(""));
       return getAlltanentsdata("");
     },
   });
-  const handleBeforeUpload = (file) => {
-    const uniqueFileName = `${uuidv4()}_${file.name}`;
-
-    const newFile = new File([file], uniqueFileName, { type: file.type });
-
-    return newFile;
+  const handleSelectChange = (value: string) => {
+    console.log("Selected Tenant ID:", value);
+    formInstance.setFieldsValue({ tenantId: value });
+    formInstance.validateFields(["tenantId"]);
   };
+  useEffect(() => {
+    console.log("Tenants Data:", tenants?.data?.data);
+  }, [tenants]);
+
+  // State to track if an image is uploaded
+
+  const handleBeforeUpload = (file: File) => {
+    const uuidFileName = `${uuidv4()}_${file.name}`;
+    const renamedFile = new File([file], uuidFileName, {
+      type: file.type,
+    });
+
+    formInstance.setFieldsValue({ image: renamedFile });
+
+    const imageValidation =
+      file.type === "image/jpeg" || file.type === "image/png";
+
+    if (!imageValidation) {
+      messageApi.open({
+        type: "error",
+        content: "Please upload a jpg or png image.",
+      });
+    }
+
+    setimageUrl(URL.createObjectURL(file));
+
+    return false; // Prevent automatic upload
+  };
+
   return (
     <>
       <Col span={24}>
@@ -111,27 +145,38 @@ export default function CreateProduct() {
                 <Form.Item
                   label="Image"
                   name="image"
+                  valuePropName="file" // Required to store File object directly
+                  getValueFromEvent={(e) => {
+                    if (Array.isArray(e)) return e;
+                    return e?.file; // Return the File object directly
+                  }}
                   rules={[
                     {
                       required: true,
-                      message: "Please input your image",
+                      message: "Please upload an image",
                     },
                   ]}
                 >
-                  <div>
-                    <Upload
-                      beforeUpload={(file) => {
-                        const newFile = handleBeforeUpload(file);
-                        console.log("New File Name: ", newFile.name); // Debugging
-                        return false; // Prevent automatic upload
-                      }}
-                      name="image"
-                      listType="picture-card"
-                    >
-                      <PlusOutlined />
-                    </Upload>
-                  </div>
+                  {contextHolder}
+                  <Upload
+                    beforeUpload={handleBeforeUpload}
+                    name="image"
+                    listType="picture-card"
+                    showUploadList={false} // Hide the list of uploaded images
+                    accept="image/*" // Restrict to images only
+                  >
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt="avatar"
+                        style={{ width: "100%", height: "100%" }}
+                      />
+                    ) : (
+                      <PlusOutlined></PlusOutlined>
+                    )}
+                  </Upload>
                 </Form.Item>
+                {contextHolder}
               </Col>
             </Row>
           </Card>
@@ -143,19 +188,20 @@ export default function CreateProduct() {
             <Row gutter={20}>
               <Col span={12}>
                 <Form.Item
-                  label="Resturant"
+                  label="Restaurant"
                   name="tenantId"
                   rules={[
-                    { required: true, message: "Please input your Resturant!" },
+                    { required: true, message: "Please select a restaurant!" },
                   ]}
                 >
                   <Select
                     style={{ width: "80%" }}
-                    allowClear={true}
-                    placeholder="Status"
+                    allowClear
+                    placeholder="Select a Restaurant"
+                    onChange={handleSelectChange} // Ensure state updates correctly
                   >
-                    {tenants?.data?.data?.map((item: ResturantType) => (
-                      <Select.Option key={item._id} value={item._id}>
+                    {tenants?.data?.data?.map((item: Tanent) => (
+                      <Select.Option key={item.id} value={item.id}>
                         {item.name}
                       </Select.Option>
                     ))}

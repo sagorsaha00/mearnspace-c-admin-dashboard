@@ -76,14 +76,14 @@ export type Product = {
   isPublish: boolean;
   createdAt: string;
 };
+export type ImageFiled = { file: File };
 
-export type CreateProductImage = {
-  image: { file: File }
-  _id: string;
+export type CreateProductImage = Product & { image: ImageFiled };
+
+export type UploadFileType = {
+  uid: string;
   name: string;
- 
-  description: string;
-  categories: Category;
-  isPublish: boolean;
-  createdAt: string;
-}
+  originFileObj: string;
+  lastModifiedDate: string;
+  status: string;
+};

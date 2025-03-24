@@ -12,15 +12,19 @@ import {
 import React from "react";
 import ProductFilter from "./productFilter";
 import { useForm } from "antd/es/form/Form";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { PER_PAGE } from "../../constant";
-import { GetAllProducts } from "../../http/api";
-
+import { GetAllProducts, PostProductData } from "../../http/api";
 import { FormDataValue, Product } from "../../types";
 import { debounce } from "lodash";
-
 import { useAuthStore } from "../../store";
 import CreateProduct from "./createProduct";
+import { formDataToJson } from "./helper";
 
 export default function Products() {
   const [formInstance] = Form.useForm();
@@ -131,6 +135,19 @@ export default function Products() {
       });
     }
   };
+  const queryClient = useQueryClient();
+
+  const { mutate: productMutate } = useMutation({
+    mutationKey: ["product"],
+    mutationFn: async (data: FormData) => {
+      const response = await PostProductData(data);
+      return response.data;
+    },
+    onSuccess: () => {
+      // This will refresh your data
+      queryClient.invalidateQueries({ queryKey: ["product"] });
+    },
+  });
 
   const HandleSubmitForm = async () => {
     formInstance.validateFields();
@@ -148,7 +165,6 @@ export default function Products() {
           } else {
             parsedKey = { configurationKey: key };
           }
-          console.log("Parsed Key:", parsedKey);
         } catch (error) {
           console.error("JSON Parse Error:", error);
           return acc;
@@ -196,15 +212,19 @@ export default function Products() {
         value: value,
       };
     });
-    console.log("attrebutes", attrebuties);
 
     const postData = {
       ...formInstance.getFieldsValue(),
+      isPublish: formInstance.getFieldValue("isPublish") ? true : false,
+      image: formInstance.getFieldValue("image"),
       CategoryId,
+      attributes: attrebuties,
       priceConfiguration: finalPricing,
-      attrebuties,
     };
-    console.log("postData", postData);
+
+    const fromData = formDataToJson(postData);
+    console.log("image value", formInstance.getFieldValue("image"));
+    await productMutate(fromData);
   };
 
   return (
