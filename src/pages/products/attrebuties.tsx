@@ -1,32 +1,35 @@
-import {
-  Card,
-  Col,
-  Form,
-  Radio,
-  Row,
-  Switch,
-  Typography,
-} from "antd";
-import { Category } from "../../types";
+import { Card, Col, Form, Radio, Row, Switch, Typography } from "antd";
+import { Category, testCategory } from "../../types";
+import { getCategoryId } from "../../http/api";
+import { useQuery } from "@tanstack/react-query";
 
 interface AttrebutiesProps {
   selectCategory: Category;
 }
 
 export default function Price({ selectCategory }: AttrebutiesProps) {
-  const selectCategoryInJson: Category | null = selectCategory
-    ? JSON.parse(selectCategory as unknown as string)
-    : null;
-  if (!selectCategoryInJson) {
+  const seleCategoryId = selectCategory.toString();
+  
+
+  const { data: FetchCategories } = useQuery<testCategory>({
+    queryKey: ["FetchCategories", selectCategory],
+
+    queryFn: async () => getCategoryId(seleCategoryId).then((res) => res.data),
+    enabled: !!selectCategory,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  if (!FetchCategories) {
     return null;
   }
+  
 
   return (
     <Card
       title={<Typography.Text> Attrebuties</Typography.Text>}
       bordered={false}
     >
-      {selectCategoryInJson.attributes.map((attribute) => {
+      {FetchCategories.category.attributes.map((attribute) => {
         return (
           <div key={attribute.name}>
             {attribute.widgetType === "radio" ? (
@@ -51,9 +54,17 @@ export default function Price({ selectCategory }: AttrebutiesProps) {
             ) : attribute.widgetType === "switch" ? (
               <Row>
                 <Col>
-                <Form.Item name={["attributes", attribute.name]} label={attribute.name} initialValue={attribute.defaultValue} valuePropName="checked">
-                  <Switch checkedChildren="YES" unCheckedChildren="NO"></Switch>
-                </Form.Item>
+                  <Form.Item
+                    name={["attributes", attribute.name]}
+                    label={attribute.name}
+                    initialValue={attribute.defaultValue}
+                    valuePropName="checked"
+                  >
+                    <Switch
+                      checkedChildren="YES"
+                      unCheckedChildren="NO"
+                    ></Switch>
+                  </Form.Item>
                 </Col>
               </Row>
             ) : null}

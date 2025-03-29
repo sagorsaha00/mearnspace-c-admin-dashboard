@@ -2,10 +2,9 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
 interface Tenant {
- id:number;
- name:string;
- address:string;
-
+  id: number;
+  name: string;
+  address: string;
 }
 export interface User {
   id: number;
@@ -13,9 +12,10 @@ export interface User {
   lastname: string;
   email: string;
   role: string;
-  tanent:Tenant
+  tanent: Tenant;
 }
 interface AuthState {
+  role: string;
   user: null | User;
   setUser: (user: User) => void;
   logout: () => void;

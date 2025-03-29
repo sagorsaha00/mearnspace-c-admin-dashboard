@@ -9,7 +9,7 @@ import {
   Image,
   Drawer,
 } from "antd";
-import React from "react";
+import React, { useEffect } from "react";
 import ProductFilter from "./productFilter";
 import { useForm } from "antd/es/form/Form";
 import {
@@ -20,7 +20,7 @@ import {
 } from "@tanstack/react-query";
 import { PER_PAGE } from "../../constant";
 import { GetAllProducts, PostProductData } from "../../http/api";
-import { FormDataValue, Product } from "../../types";
+import { FormDataValue, priceConfiguration, Product } from "../../types";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import CreateProduct from "./createProduct";
@@ -28,6 +28,7 @@ import { formDataToJson } from "./helper";
 
 export default function Products() {
   const [formInstance] = Form.useForm();
+
   const columns = [
     {
       title: "ProductName",
@@ -77,6 +78,7 @@ export default function Products() {
     },
   ];
   const [open, setOpen] = React.useState<boolean>(false);
+  const [EditFromData, setEditFromData] = React.useState<Product | null>();
   const { user } = useAuthStore();
   const [quryParams, setQuryParams] = React.useState({
     perPage: PER_PAGE,
@@ -137,24 +139,34 @@ export default function Products() {
   };
   const queryClient = useQueryClient();
 
-  const { mutate: productMutate } = useMutation({
+  const { mutate: productMutate, isPending: isProductLoading } = useMutation({
     mutationKey: ["product"],
     mutationFn: async (data: FormData) => {
       const response = await PostProductData(data);
       return response.data;
     },
     onSuccess: () => {
-      // This will refresh your data
+      formInstance.resetFields();
+      setOpen(false);
       queryClient.invalidateQueries({ queryKey: ["product"] });
     },
   });
 
   const HandleSubmitForm = async () => {
     formInstance.validateFields();
-
     const priceConfiguration = await formInstance.getFieldValue(
       "priceConfiguration"
     );
+    console.log(await formInstance.getFieldValue(
+      "priceConfiguration"
+    ));
+    console.log(await formInstance.getFieldsValue());
+    console.log("price", priceConfiguration);
+    if (!priceConfiguration) {
+      console.warn("priceConfiguration is undefined.");
+      return; // or handle the case where priceConfiguration is undefined
+    }
+
     const pricing = Object.entries(priceConfiguration).reduce(
       (acc: { [key: string]: unknown }, [key, value]) => {
         let parsedKey;
@@ -194,15 +206,28 @@ export default function Products() {
             value
           );
         }
-
         return acc;
       },
       {}
     );
 
-    const finalPricing = { ...pricing };
+    console.log("pricing", pricing);
 
-    const CategoryId = JSON.parse(formInstance.getFieldValue("CategoryId"))._id;
+    const categoryIdValue = formInstance.getFieldValue("CategoryId").toString();
+
+    // Check if categoryIdValue is a valid JSON string or plain text
+    let CategoryId;
+    try {
+      CategoryId = categoryIdValue ? JSON.parse(categoryIdValue)._id : null;
+      console.log(CategoryId);
+    } catch (error: unknown) {
+      console.error(
+        "Invalid JSON format for categoryIdValue:",
+        categoryIdValue
+      );
+      // If it's not JSON, use it directly as the ID
+      CategoryId = categoryIdValue || null;
+    }
 
     const attrebuties = Object.entries(
       formInstance.getFieldValue("attributes")
@@ -215,18 +240,60 @@ export default function Products() {
 
     const postData = {
       ...formInstance.getFieldsValue(),
+      tenantId:
+        user?.role === "manager"
+          ? user?.tanent?.id
+          : formInstance.getFieldValue("tenantId"),
       isPublish: formInstance.getFieldValue("isPublish") ? true : false,
       image: formInstance.getFieldValue("image"),
       CategoryId,
       attributes: attrebuties,
-      priceConfiguration: finalPricing,
+      priceConfiguration: {
+        priceConfiguration: {
+          configurationKey: pricing,
+        },
+      },
     };
 
     const fromData = formDataToJson(postData);
-    console.log("image value", formInstance.getFieldValue("image"));
+
     await productMutate(fromData);
   };
 
+  useEffect(() => {
+    setOpen(true);
+    let priceConfigurationjson = {};
+
+    if (EditFromData) {
+      priceConfigurationjson = Object.entries(
+        EditFromData?.priceConfiguration
+      ).reduce((acc: { [key: string]: unknown }, [key, value]) => {
+        const jsonStringFromValue = JSON.stringify({
+          configurationKey: key,
+          priceType: value,
+        });
+        return {
+          ...acc,
+          [jsonStringFromValue]: value.availableOptions,
+        };
+      }, {});
+    }
+
+    const attrebuties = EditFromData?.attributes?.reduce(
+      (acc, item) => ({
+        ...acc,
+        [item.name]: item.value,
+      }),
+      {}
+    );
+
+    formInstance.setFieldsValue({
+      ...EditFromData,
+      CategoryId: EditFromData?.category?._id,
+      priceConfiguration: priceConfigurationjson,
+      attrebuties,
+    });
+  }, [EditFromData]);
   return (
     <>
       <Space direction="vertical" style={{ width: "100%" }}>
@@ -256,9 +323,15 @@ export default function Products() {
             {
               title: "Actions",
 
-              render: () => (
+              render: (_, record: Product) => (
                 <div>
-                  <Button type="primary" onClick={() => {}}>
+                  <Button
+                    type="primary"
+                    onClick={() => {
+                      setEditFromData(record);
+                      console.log("record", record);
+                    }}
+                  >
                     Edit
                   </Button>
                 </div>
@@ -301,8 +374,12 @@ export default function Products() {
           extra={
             <Space>
               <Button onClick={CencelButton}>Cencel</Button>
-              <Button type="primary" onClick={HandleSubmitForm}>
-                Save
+              <Button
+                type="primary"
+                loading={isProductLoading}
+                onClick={HandleSubmitForm}
+              >
+                submit
               </Button>
             </Space>
           }

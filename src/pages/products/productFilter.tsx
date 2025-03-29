@@ -21,7 +21,6 @@ export default function ProductFilter({ children }: productFileterfunction) {
   const { data: tenants } = useQuery({
     queryKey: ["resturants"],
     queryFn: async () => {
-       
       return getAlltanentsdata("");
     },
   });
@@ -78,7 +77,7 @@ export default function ProductFilter({ children }: productFileterfunction) {
                       }}
                     >
                       {tenants?.data.data.map((item: Category) => (
-                        <Select.Option key={item.id} value={item.id}>
+                        <Select.Option key={item._id} value={item._id}>
                           {item.name}
                         </Select.Option>
                       ))}

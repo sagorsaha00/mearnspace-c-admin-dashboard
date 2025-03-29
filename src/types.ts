@@ -61,18 +61,31 @@ export interface Attributes {
   availableOptions: string[];
 }
 export interface Category {
-  id: string;
+  _id: string;
   name: string;
   priceConfiguration: priceConfiguration;
   attributes: Attributes[];
 }
+ 
+export interface testCategory {
+  name: string;
+  category: Category
+  priceConfiguration: priceConfiguration;
+  attributes: Attributes[];
+}
+export type AttrebutiesSchema = {
+  name: string;
+  value: string | boolean;
+};
 
 export type Product = {
   _id: string;
   name: string;
   image: string;
+  priceConfiguration: priceConfiguration;
+  attributes: AttrebutiesSchema[];
   description: string;
-  categories: Category;
+  category: Category;
   isPublish: boolean;
   createdAt: string;
 };
@@ -87,3 +100,12 @@ export type UploadFileType = {
   lastModifiedDate: string;
   status: string;
 };
+interface PriceConfiguration {
+  [key: string]: {
+    priceType: "base" | "aditional";
+    availableOptions: string[];
+  };
+}
+export interface SelectCategory {
+  priceConfiguration: PriceConfiguration;
+}

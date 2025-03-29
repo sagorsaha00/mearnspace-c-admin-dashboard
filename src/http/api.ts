@@ -1,4 +1,3 @@
-import { data } from "react-router";
 import { CreatUserData, Credentials } from "../types";
 import { api } from "./client";
 export const auth_service = "/api/auth";
@@ -31,3 +30,8 @@ export const PostProductData = (product: FormData) =>
       "Content-Type": "multipart/form-data",
     },
   });
+
+  export const getCategoryId = (id: string) =>
+    api.get(`${catalog_service}/categories/${id}`);
+  console.log('getcateroies',getCategoryId);
+  

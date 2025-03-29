@@ -18,13 +18,15 @@ import { ResturantType, Tanent } from "../../types";
 import { PlusOutlined } from "@ant-design/icons";
 import Price from "./price";
 import Attrebuties from "./attrebuties";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+
+import { useAuthStore } from "../../store";
 
 export default function CreateProduct() {
   const selectCategory = Form.useWatch("CategoryId");
-  const [imageUrl, setimageUrl] = useState<string>("");
-  const [messageApi, contextHolder] = message.useMessage();
 
+  const [messageApi, contextHolder] = message.useMessage();
+  const user = useAuthStore();
   const { data: catagories } = useQuery({
     queryKey: ["catagories"],
     queryFn: async () => {
@@ -41,38 +43,13 @@ export default function CreateProduct() {
     },
   });
   const handleSelectChange = (value: string) => {
-    console.log("Selected Tenant ID:", value);
+     
     formInstance.setFieldsValue({ tenantId: value });
     formInstance.validateFields(["tenantId"]);
   };
   useEffect(() => {
-    console.log("Tenants Data:", tenants?.data?.data);
+   
   }, [tenants]);
-
-  // State to track if an image is uploaded
-
-  const handleBeforeUpload = (file: File) => {
-    const uuidFileName = `${uuidv4()}_${file.name}`;
-    const renamedFile = new File([file], uuidFileName, {
-      type: file.type,
-    });
-
-    formInstance.setFieldsValue({ image: renamedFile });
-
-    const imageValidation =
-      file.type === "image/jpeg" || file.type === "image/png";
-
-    if (!imageValidation) {
-      messageApi.open({
-        type: "error",
-        content: "Please upload a jpg or png image.",
-      });
-    }
-
-    setimageUrl(URL.createObjectURL(file));
-
-    return false; // Prevent automatic upload
-  };
 
   return (
     <>
@@ -114,7 +91,7 @@ export default function CreateProduct() {
                       (item: ResturantType) => (
                         <Select.Option
                           key={item._id}
-                          value={JSON.stringify(item)}
+                          value={item._id}
                         >
                           {item.name}
                         </Select.Option>
@@ -145,10 +122,10 @@ export default function CreateProduct() {
                 <Form.Item
                   label="Image"
                   name="image"
-                  valuePropName="file" // Required to store File object directly
+                  valuePropName="file"
                   getValueFromEvent={(e) => {
                     if (Array.isArray(e)) return e;
-                    return e?.file; // Return the File object directly
+                    return e?.file;
                   }}
                   rules={[
                     {
@@ -157,23 +134,30 @@ export default function CreateProduct() {
                     },
                   ]}
                 >
-                  {contextHolder}
                   <Upload
-                    beforeUpload={handleBeforeUpload}
+                    beforeUpload={(file) => {
+                      const uuidFileName = `${uuidv4()}_${file.name}`;
+                      const renamedFile = new File([file], uuidFileName, {
+                        type: file.type,
+                      });
+                      formInstance.setFieldsValue({ image: renamedFile });
+                      const imageValidation =
+                        file.type === "image/jpeg" || file.type === "image/png";
+
+                      if (!imageValidation) {
+                        messageApi.open({
+                          type: "error",
+                          content: "Please upload a jpg or png image.",
+                        });
+                      }
+                      return false;
+                    }}
                     name="image"
                     listType="picture-card"
-                    showUploadList={false} // Hide the list of uploaded images
-                    accept="image/*" // Restrict to images only
+                    showUploadList={false}
+                    accept="image/jpeg || image/png"
                   >
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt="avatar"
-                        style={{ width: "100%", height: "100%" }}
-                      />
-                    ) : (
-                      <PlusOutlined></PlusOutlined>
-                    )}
+                    <PlusOutlined />
                   </Upload>
                 </Form.Item>
                 {contextHolder}
@@ -184,32 +168,38 @@ export default function CreateProduct() {
           {selectCategory && <Price selectCategory={selectCategory} />}
           {selectCategory && <Attrebuties selectCategory={selectCategory} />}
 
-          <Card title="Select Tenant" dir="horizontal" bordered={false}>
-            <Row gutter={20}>
-              <Col span={12}>
-                <Form.Item
-                  label="Restaurant"
-                  name="tenantId"
-                  rules={[
-                    { required: true, message: "Please select a restaurant!" },
-                  ]}
-                >
-                  <Select
-                    style={{ width: "80%" }}
-                    allowClear
-                    placeholder="Select a Restaurant"
-                    onChange={handleSelectChange} // Ensure state updates correctly
+          {user.role !== "manager" && (
+            <Card title="Select_Tenant" dir="horizontal" bordered={false}>
+              <Row gutter={20}>
+                <Col span={12}>
+                  <Form.Item
+                    label="Restaurant"
+                    name="tenantId"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please select a restaurant!",
+                      },
+                    ]}
                   >
-                    {tenants?.data?.data?.map((item: Tanent) => (
-                      <Select.Option key={item.id} value={item.id}>
-                        {item.name}
-                      </Select.Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Card>
+                    <Select
+                      style={{ width: "80%" }}
+                      allowClear
+                      placeholder="Select a Restaurant"
+                      onChange={handleSelectChange}
+                    >
+                      {tenants?.data?.data?.map((item: Tanent) => (
+                        <Select.Option key={item.id} value={item.id}>
+                          {item.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+            </Card>
+          )}
+
           <Card title="Role info" dir="horizontal" bordered={false}>
             <Row gutter={20}>
               <Col span={12}>
